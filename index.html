@@ -26,7 +26,11 @@
       padding: 30px;
       max-height: 90vh;
       overflow-y: auto;
+      transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
     }
+
+    .fade-in { opacity: 1; transform: translateY(0); }
+    .fade-out { opacity: 0; transform: translateY(10px); }
 
     .header { text-align: center; margin-bottom: 25px; }
     .logo {
@@ -94,13 +98,48 @@
     .alert.error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
     .alert.show { display: block; }
 
+    .thankyou {
+      text-align: center;
+      color: #4A4A68;
+      padding: 40px 20px;
+      animation: fadeIn 0.5s ease-in-out;
+    }
+    .thankyou h2 {
+      font-size: 26px;
+      margin-bottom: 10px;
+    }
+    .thankyou p {
+      font-size: 16px;
+      color: #555;
+      margin-bottom: 25px;
+    }
+    .thankyou button {
+      background: #D4FF00;
+      color: #4A4A68;
+      font-weight: 700;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .thankyou button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(212,255,0,0.4);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
     @media (max-width: 600px) { .form-row { flex-direction: column; } }
   </style>
 </head>
 <body>
-  <div class="container">
+  <div class="container fade-in" id="mainContainer">
     <div class="header">
-      <img src="https://submit.tournai360.be/Tournai360_logo.png" alt="Tournai360" class="logo">
+      <img src="https://tournai360.be/images/logo.png" alt="Tournai360" class="logo">
       <h1>Soumettre un événement</h1>
       <p>DEMANDE. DÉCOUVRE. VIS TOURNAI.</p>
     </div>
@@ -188,7 +227,6 @@
       submitBtn.disabled = true;
       submitBtn.innerHTML = '<span class="loading"></span> Envoi...';
 
-      // Convert YYYY-MM-DD → DD/MM/YYYY
       const formatDateForAPI = (dateStr) => {
         if (!dateStr) return null;
         const [year, month, day] = dateStr.split("-");
@@ -221,8 +259,8 @@
         const result = await response.json();
 
         if (response.ok) {
-          showAlert('success', '✅ Événement soumis avec succès ! Il sera publié après validation.');
           clearForm();
+          showThankYou();
         } else {
           showAlert('error', '❌ Erreur: ' + (result.detail || 'Impossible de soumettre.'));
         }
@@ -251,6 +289,36 @@
     function hideAlert() {
       const alert = document.getElementById('alert');
       alert.classList.remove('show');
+    }
+
+    // ✅ Confirmation view with fade-in/out and “Nouvelle soumission”
+    function showThankYou() {
+      const container = document.getElementById('mainContainer');
+      container.classList.add('fade-out');
+
+      setTimeout(() => {
+        container.innerHTML = `
+          <div class="header">
+            <img src="https://tournai360.be/images/logo.png" alt="Tournai360" class="logo">
+            <h1>Merci !</h1>
+          </div>
+          <div class="thankyou">
+            <h2>Votre événement a bien été soumis 🎉</h2>
+            <p>Merci pour votre contribution à Tournai360.<br>
+            Il sera publié après validation par notre équipe.</p>
+            <button onclick="reloadForm()">➕ Nouvelle soumission</button>
+          </div>
+        `;
+        container.classList.remove('fade-out');
+        container.classList.add('fade-in');
+      }, 500);
+    }
+
+    // ✅ Smoothly reload the form
+    function reloadForm() {
+      const container = document.getElementById('mainContainer');
+      container.classList.add('fade-out');
+      setTimeout(() => window.location.reload(), 500);
     }
   </script>
 </body>
