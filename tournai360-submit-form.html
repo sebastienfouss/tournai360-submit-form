@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tournai360 - Soumettre un événement</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #D4FF00; /* Tournai360 lime yellow */
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 700px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            max-width: 300px;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            color: #4A4A68; /* Dark purple from logo */
+            font-size: 32px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            color: #4A4A68;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .required {
+            color: #e74c3c;
+        }
+
+        input[type="text"],
+        input[type="url"],
+        input[type="date"],
+        input[type="time"],
+        textarea,
+        input[type="password"] {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #4A4A68; /* Dark purple */
+            box-shadow: 0 0 0 3px rgba(74, 74, 104, 0.1);
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-submit {
+            background: #D4FF00; /* Tournai360 yellow */
+            color: #4A4A68; /* Dark purple text */
+            font-weight: 700;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(212, 255, 0, 0.4);
+            background: #C4EF00;
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-clear {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .btn-clear:hover {
+            background: #e0e0e0;
+        }
+
+        .alert {
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .alert.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .alert.show {
+            display: block;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .api-key-section {
+            background: #fff3cd;
+            border: 2px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .api-key-section p {
+            font-size: 13px;
+            color: #856404;
+            margin-bottom: 8px;
+        }
+
+        .help-text {
+            font-size: 12px;
+            color: #999;
+            margin-top: 4px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 24px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="./Tournai360_log.png" 
+                 alt="Tournai360" class="logo" 
+                 onerror="this.style.display='none'">
+            <h1>Soumettre un événement</h1>
+            <p>DEMANDE. DÉCOUVRE. VIS TOURNAI.</p>
+        </div>
+
+        <div id="alert" class="alert"></div>
+
+        <form id="eventForm">
+            <div class="api-key-section">
+                <p><strong>🔑 Clé API requise</strong></p>
+                <div class="form-group">
+                    <label for="apiKey">Votre clé API <span class="required">*</span></label>
+                    <input type="password" id="apiKey" name="apiKey" required 
+                           placeholder="t360_...">
+                    <div class="help-text">Contactez l'administrateur pour obtenir une clé API</div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="title">Titre de l'événement <span class="required">*</span></label>
+                <input type="text" id="title" name="title" required 
+                       placeholder="Concert au Beffroi">
+            </div>
+
+            <div class="form-group">
+                <label for="date">Date de début <span class="required">*</span></label>
+                <input type="date" id="date" name="date" required>
+            </div>
+
+            <div class="form-group">
+                <label for="time">Heure de début <span class="required">*</span></label>
+                <input type="time" id="time" name="time" required>
+            </div>
+
+            <div class="form-group">
+                <label for="end_date">Date de fin</label>
+                <input type="date" id="end_date" name="end_date">
+                <div class="help-text">Optionnel - pour les événements sur plusieurs jours</div>
+            </div>
+
+            <div class="form-group">
+                <label for="end_time">Heure de fin</label>
+                <input type="time" id="end_time" name="end_time">
+                <div class="help-text">Optionnel - sinon durée de 3h par défaut</div>
+            </div>
+
+            <div class="form-group">
+                <label for="location">Lieu <span class="required">*</span></label>
+                <input type="text" id="location" name="location" required 
+                       placeholder="Grand Place, Tournai">
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description <span class="required">*</span></label>
+                <textarea id="description" name="description" required
+                          placeholder="Décrivez votre événement en détail..."></textarea>
+                <div class="help-text">Minimum 50 caractères</div>
+            </div>
+
+            <div class="form-group">
+                <label for="facebook_url">Lien Facebook</label>
+                <input type="url" id="facebook_url" name="facebook_url" 
+                       placeholder="https://facebook.com/events/123456">
+                <div class="help-text">Si l'événement vient de Facebook</div>
+            </div>
+
+            <div class="button-group">
+                <button type="button" class="btn-clear" onclick="clearForm()">
+                    Effacer
+                </button>
+                <button type="submit" class="btn-submit" id="submitBtn">
+                    ✅ Soumettre l'événement
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Configuration
+        const API_URL = 'https://fbwebhook.tournai360.be/api/v1/events/submit-from-extension';
+
+        // Save/load API key from localStorage
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedKey = localStorage.getItem('tournai360_api_key');
+            if (savedKey) {
+                document.getElementById('apiKey').value = savedKey;
+            }
+        });
+
+        // Handle form submission
+        document.getElementById('eventForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const apiKey = document.getElementById('apiKey').value;
+            const description = document.getElementById('description').value;
+            
+            // Validate description length
+            if (description.length < 50) {
+                showAlert('error', '❌ La description doit contenir au moins 50 caractères');
+                return;
+            }
+            
+            // Save API key for next time
+            localStorage.setItem('tournai360_api_key', apiKey);
+            
+            // Disable button and show loading
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="loading"></span> Envoi en cours...';
+            
+            // Build date_time string like "du 29 nov. 13h au 30 nov. 18h"
+            const dateTimeString = buildDateTimeString();
+            
+            // Prepare data
+            const formData = {
+                title: document.getElementById('title').value,
+                date_time: dateTimeString,  // Single string format
+                location: document.getElementById('location').value,
+                description: description,
+                facebook_url: document.getElementById('facebook_url').value || ""
+            };
+            
+            console.log('Sending data:', formData);
+            
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-Key': apiKey
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showAlert('success', '✅ Événement soumis avec succès! Il sera publié après validation.');
+                    clearForm();
+                } else {
+                    showAlert('error', '❌ Erreur: ' + (result.detail || 'Impossible de soumettre l\'événement'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('error', '❌ Erreur de connexion: ' + error.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '✅ Soumettre l\'événement';
+            }
+        });
+        
+        // Build date_time string like "du 29 nov. 13h au 30 nov. 18h"
+        function buildDateTimeString() {
+            const startDate = document.getElementById('date').value; // YYYY-MM-DD
+            const startTime = document.getElementById('time').value; // HH:MM
+            const endDate = document.getElementById('end_date').value; // YYYY-MM-DD or empty
+            const endTime = document.getElementById('end_time').value; // HH:MM or empty
+            
+            // Convert date to French format
+            const months = ['jan.', 'fév.', 'mars', 'avr.', 'mai', 'juin', 
+                          'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+            
+            const [startYear, startMonth, startDay] = startDate.split('-');
+            const startMonthFr = months[parseInt(startMonth) - 1];
+            const startHour = startTime.split(':')[0] + 'h' + (startTime.split(':')[1] !== '00' ? startTime.split(':')[1] : '');
+            
+            let dateTimeStr = `du ${parseInt(startDay)} ${startMonthFr} ${startHour}`;
+            
+            // Add end date/time if provided
+            if (endDate && endTime) {
+                const [endYear, endMonth, endDay] = endDate.split('-');
+                const endMonthFr = months[parseInt(endMonth) - 1];
+                const endHour = endTime.split(':')[0] + 'h' + (endTime.split(':')[1] !== '00' ? endTime.split(':')[1] : '');
+                
+                dateTimeStr += ` au ${parseInt(endDay)} ${endMonthFr} ${endHour}`;
+            } else if (endTime) {
+                // Same day, just different end time
+                const endHour = endTime.split(':')[0] + 'h' + (endTime.split(':')[1] !== '00' ? endTime.split(':')[1] : '');
+                dateTimeStr += ` au ${endHour}`;
+            }
+            
+            return dateTimeStr;
+        }
+        
+        // Format date from YYYY-MM-DD to DD/MM/YYYY
+        function formatDate(dateString) {
+            const [year, month, day] = dateString.split('-');
+            return `${day}/${month}/${year}`;
+        }
+        
+        // Clear form
+        function clearForm() {
+            document.getElementById('eventForm').reset();
+            // Keep API key
+            const savedKey = localStorage.getItem('tournai360_api_key');
+            if (savedKey) {
+                document.getElementById('apiKey').value = savedKey;
+            }
+            hideAlert();
+        }
+        
+        // Show alert
+        function showAlert(type, message) {
+            const alert = document.getElementById('alert');
+            alert.className = `alert ${type} show`;
+            alert.textContent = message;
+            
+            // Auto-hide after 5 seconds
+            setTimeout(hideAlert, 5000);
+        }
+        
+        // Hide alert
+        function hideAlert() {
+            const alert = document.getElementById('alert');
+            alert.classList.remove('show');
+        }
+    </script>
+</body>
+</html>
